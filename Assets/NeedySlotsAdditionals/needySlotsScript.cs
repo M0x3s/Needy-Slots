@@ -57,6 +57,7 @@ public class needySlotsScript : MonoBehaviour {
 		}
 		if (!nonPlayer) {
 			knob.AddInteractionPunch();
+			audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
 		}
 		if (!isActive) {
 			needy.OnStrike();
@@ -197,6 +198,7 @@ public class needySlotsScript : MonoBehaviour {
 		foreach (slotScript slot in slots) {
 			total.Add(slot.spinSlot()); //Tells me result + animation
 			yield return new WaitForSeconds (0.05f); //Delay to make animation look nicer
+			audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonRelease, transform);
 		}
 		yield return new WaitForSeconds (1f); //Slight delay to prevent spam and complete animations
 		slotState = 2;
@@ -222,6 +224,7 @@ public class needySlotsScript : MonoBehaviour {
 			if (signType == 0) { //Flicker
 				currState = !currState;
 			}
+			audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonRelease, transform);
 		}
 		yield return new WaitForSeconds (flickerRate);
 		StartCoroutine("lightupSign");
