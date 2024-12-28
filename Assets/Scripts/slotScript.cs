@@ -8,14 +8,12 @@ public class slotScript : MonoBehaviour {
 	public int spinSlot() {
 		animator.Play("SlotStart");
 		int totalValues = values.transform.childCount;
-		int shift = UnityEngine.Random.Range(0, totalValues);
-		shift = 0;
+		int shift = UnityEngine.Random.Range(0, totalValues); // X = 0, B = 1, L = 2, T = 3
+		// for testing:
+		// shift = 0;
+		// shift = 2;
 		StartCoroutine("updateRotation", shift * 360/totalValues);
-		int total = 1;
-		for (int i = 0; i < shift; i++) {
-			total *= 2;
-		}
-		return total;
+		return shift;
 	}
 	IEnumerator updateRotation(int shift) {
 		yield return new WaitForSeconds (0.5f);
