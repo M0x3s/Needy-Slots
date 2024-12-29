@@ -14,7 +14,19 @@ MonoBehaviour:
   id: needySlots
   title: Needy Slots
   author: M0xes
-  description: Forced Gambling
+  description: 'Forced Gambling.
+
+
+    Play the slots unless told otherwise.
+
+
+    Manual made by M0xes.
+
+
+    Manual can be found on ktane.timwi.de or in the manuals folder of your game.
+
+
+    If any bugs arise, dm m0x3s on discord.'
   version: 1.0
   outputFolder: build
-  previewImage: {fileID: 0}
+  previewImage: {fileID: 2800000, guid: 267fbcf3f3c6bae45a3aa45854f73508, type: 3}

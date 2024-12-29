@@ -18,6 +18,7 @@ public class needySlotsScript : MonoBehaviour {
 	private float flickerRate = 0.5f;
 	private bool isActive = true;
 	private bool nonPlayer = true;
+	private bool autoSolve; //for Twitch
 	// Logging
 	static int moduleIdCounter = 1;
 	int moduleId;
@@ -36,11 +37,16 @@ public class needySlotsScript : MonoBehaviour {
 		 slotState = 0;
 		 PickSignType();
 		 pullHandle();
+		 if (autoSolve) {
+			StartCoroutine("TwitchHandleForcedSolve");
+		 }
 	 }
 	 void OnNeedyDeactivation()
 	{
-		Debug.Log("deactivate called");
 		slotState = 1;
+		StopAllCoroutines();
+		StartCoroutine("quickRevertAnimation");
+		StartCoroutine("lightupSign");
 	}
 	protected void OnTimerExpired()
     {
@@ -68,8 +74,15 @@ public class needySlotsScript : MonoBehaviour {
 		StartCoroutine("spinSlots");
 		StartCoroutine("pullDownAnimation");
 	}
-	void checkSet(HashSet<int> result) {
-		if (result.SetEquals(new HashSet<int>{0, 0, 0})) {
+	void checkSet(List<int> result) {
+		int Xcount = 0;
+		foreach (int i in result) {
+			if (i != 0) {
+				break;
+			}
+			Xcount++;
+		}
+		if (Xcount == 3) {
 			Debug.Log("Speedrun!");
 			if (nonPlayer == true) {
 				Debug.Log("Mercy tho");
@@ -83,69 +96,71 @@ public class needySlotsScript : MonoBehaviour {
 		}
 		needy.SetNeedyTimeRemaining(30f);
 
-		List<HashSet<int>> options; // X = 0, B = 1, L = 2, T = 3
+		List<List<int>> options; // X = 0, B = 1, L = 2, T = 3
 		if (signType == 0) { //Alternating
 			switch (bomb.GetStrikes()) {
-				case 0: options = new List<HashSet<int>>
+				case 0: options = new List<List<int>>
 				{
-					new HashSet<int> {2, 2, 2},
-					new HashSet<int> {2, 1, 3},
-					new HashSet<int> {1, 1, 3}
+					new List<int> {2, 2, 2},
+					new List<int> {2, 1, 3},
+					new List<int> {1, 1, 3}
 				};
 				break;
-				case 1: options = new List<HashSet<int>>
+				case 1: options = new List<List<int>>
 				{
-					new HashSet<int> {2, 2, 3},
-					new HashSet<int> {2, 1, 0},
-					new HashSet<int> {1, 3, 3}
+					new List<int> {2, 2, 3},
+					new List<int> {2, 1, 0},
+					new List<int> {1, 3, 3}
 				};
 				break;
-				default: options = new List<HashSet<int>>
+				default: options = new List<List<int>>
 				{
-					new HashSet<int> {2, 2, 2},
-					new HashSet<int> {3, 3, 0},
-					new HashSet<int> {1, 3, 0}
+					new List<int> {2, 2, 2},
+					new List<int> {3, 3, 0},
+					new List<int> {1, 3, 0}
 				};
 				break;
 			}
 		}
 		else { //Solid
 			switch (bomb.GetStrikes()) {
-				case 0: options = new List<HashSet<int>>
+				case 0: options = new List<List<int>>
 				{
-					new HashSet<int> {2, 0, 0},
-					new HashSet<int> {2, 1, 3},
-					new HashSet<int> {3, 3, 3}
+					new List<int> {2, 0, 0},
+					new List<int> {2, 1, 3},
+					new List<int> {3, 3, 3}
 				};
 				break;
-				case 1: options = new List<HashSet<int>>
+				case 1: options = new List<List<int>>
 				{
-					new HashSet<int> {2, 2, 2},
-					new HashSet<int> {2, 3, 0},
-					new HashSet<int> {1, 1, 0}
+					new List<int> {2, 2, 2},
+					new List<int> {2, 3, 0},
+					new List<int> {1, 1, 0}
 				};
 				break;
-				default: options = new List<HashSet<int>>
+				default: options = new List<List<int>>
 				{
-					new HashSet<int> {1, 3, 0},
-					new HashSet<int> {1, 1, 0},
-					new HashSet<int> {1, 1, 1}
+					new List<int> {1, 3, 0},
+					new List<int> {1, 1, 0},
+					new List<int> {1, 1, 1}
 				};
 				break;
 			}
 		}
-		Debug.Log("Light Type");
-		Debug.Log(signType);
-		Debug.Log("Result");
-		foreach (int j in result) {
-			Debug.Log(j);
-		}
-		foreach (HashSet<int> i in options) {
-			Debug.Log("Option");
-			foreach (int j in i) {
-				Debug.Log(j);
+		foreach (List<int> i in options) {
+			List<int> usedIndex = new List<int>();
+			for (int j=0; j<i.Count; j++) {
+				for (int k=0; k<result.Count; k++) {
+					if (usedIndex.Contains(k)) {
+						continue;
+					}
+					if (i[j] == result[k]) {
+						usedIndex.Add(k);
+						break;
+					}
+				}
 			}
-			if (result.SetEquals(i)) {
+			if (usedIndex.Count == result.Count) {
 				Debug.Log("Woo!");
 				isActive = false;
 				return;
@@ -193,7 +208,7 @@ public class needySlotsScript : MonoBehaviour {
         }
 	}
 	IEnumerator spinSlots() {
-		HashSet<int> total = new HashSet<int>();
+		List<int> total = new List<int>();
 		needy.SetNeedyTimeRemaining(3f); //Prevents timer from ending midspin
 		foreach (slotScript slot in slots) {
 			total.Add(slot.spinSlot()); //Tells me result + animation
@@ -228,5 +243,29 @@ public class needySlotsScript : MonoBehaviour {
 		}
 		yield return new WaitForSeconds (flickerRate);
 		StartCoroutine("lightupSign");
+	}
+	#pragma warning disable 414
+	private readonly string TwitchHelpMessage = "Use !{0} roll to pull the lever.";
+	#pragma warning disable 414
+
+	IEnumerator ProcessTwitchCommand (string Command) {
+		Command = Command.Trim().ToLower();
+		yield return null;
+		if (Command != "roll") {
+			yield return "sendtochaterror I don't understand!";
+			yield break;
+		}
+		if (slotState == 1) {
+			yield return "sendtochaterror Already rolling!";
+			yield break;
+		}
+		knob.OnInteract();
+	}
+	IEnumerator TwitchHandleForcedSolve () {
+		autoSolve = true;
+		while (isActive) {
+			knob.OnInteract();
+			yield return new WaitForSeconds(1f);
+		}
 	}
 }
