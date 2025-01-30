@@ -94,7 +94,7 @@ public class needySlotsScript : MonoBehaviour {
 			}
 			return;
 		}
-		needy.SetNeedyTimeRemaining(30f);
+		needy.SetNeedyTimeRemaining(45f);
 
 		List<List<int>> options; // X = 0, B = 1, L = 2, T = 3
 		if (signType == 0) { //Alternating
